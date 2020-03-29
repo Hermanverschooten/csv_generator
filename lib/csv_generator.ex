@@ -186,8 +186,10 @@ defmodule CsvGenerator do
 
         :integer ->
           quote do
+            @doc false
             unquote(func)
 
+            @doc false
             def unquote(fname)(unquote(name), nil), do: 0
 
             def unquote(fname)(unquote(name), value) when is_integer(value) do
