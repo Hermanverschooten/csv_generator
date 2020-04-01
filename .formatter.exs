@@ -4,7 +4,9 @@ locals_without_parens = [
   decimal_point: 1,
   column: 1,
   column: 2,
-  column: 3
+  column: 3,
+  hardcoded: 3,
+  header: 1
 ]
 
 [

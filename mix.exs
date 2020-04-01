@@ -1,7 +1,7 @@
 defmodule CsvGenerator.MixProject do
   use Mix.Project
 
-  @version "0.1.1"
+  @version "0.1.2"
 
   def project do
     [
@@ -13,7 +13,8 @@ defmodule CsvGenerator.MixProject do
       description: description(),
       package: package(),
       name: "CsvGenerator",
-      docs: docs()
+      docs: docs(),
+      elixirc_paths: paths(Mix.env())
     ]
   end
 
@@ -26,7 +27,7 @@ defmodule CsvGenerator.MixProject do
   defp deps do
     [
       {:calendar, "~> 1.0"},
-      {:ex_doc, "~> 0.20", only: :dev, runtime: false}
+      {:ex_doc, "~> 0.20", only: :docs, runtime: false}
     ]
   end
 
@@ -53,4 +54,9 @@ defmodule CsvGenerator.MixProject do
       source_url: "https://github.com/Hermanverschooten/csv_generator"
     ]
   end
+
+  defp paths(:test), do: ["lib", "docs", "test"]
+  defp paths(:dev), do: ["lib", "docs"]
+  defp paths(:docs), do: ["lib", "docs"]
+  defp paths(_), do: ["lib"]
 end

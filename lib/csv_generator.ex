@@ -1,12 +1,16 @@
 defmodule CsvGenerator do
   @moduledoc File.read!("README.md")
 
+  @types [:string, :integer, :float, :date, :datetime, :time]
+
   defmacro __using__(_options) do
     quote do
       Module.register_attribute(__MODULE__, :columns, accumulate: true, persist: false)
       Module.register_attribute(__MODULE__, :delimiter, accumulate: false, persist: false)
       Module.register_attribute(__MODULE__, :line_ending, accumulate: false, persist: false)
       Module.register_attribute(__MODULE__, :decimal_point, accumulate: false, persist: false)
+      Module.register_attribute(__MODULE__, :hardcoded, accumulate: false, persist: false)
+      Module.register_attribute(__MODULE__, :no_header, accumulate: false, persist: false)
       import unquote(__MODULE__)
 
       @before_compile unquote(__MODULE__)
@@ -18,7 +22,8 @@ defmodule CsvGenerator do
       Module.get_attribute(env.module, :columns) |> Enum.reverse(),
       Module.get_attribute(env.module, :delimiter, ","),
       Module.get_attribute(env.module, :line_ending, "\n"),
-      Module.get_attribute(env.module, :decimal_point, ".")
+      Module.get_attribute(env.module, :decimal_point, "."),
+      Module.get_attribute(env.module, :no_header, false)
     )
   end
 
@@ -57,7 +62,14 @@ defmodule CsvGenerator do
                   column :value, :integer, with: fn(x) -> x * 2 end
     * `:source` - Use another field as the source for this column, this allows you to use the same column multiple times.
   """
-  defmacro column(name, type \\ :string, opts \\ []) do
+  defmacro column(_name, type, opts \\ [])
+
+  defmacro column(_name, type, _opts)
+           when not (type in @types) do
+    raise(ArgumentError, "type should be one of #{inspect(@types)} on line #{__CALLER__.line}")
+  end
+
+  defmacro column(name, type, opts) do
     # This makes it possible to pass an anonymous function to :with
     parms =
       case Keyword.get(opts, :with) do
@@ -71,16 +83,48 @@ defmodule CsvGenerator do
   end
 
   @doc """
+  Defines a column in the CSV that will always have the same hardcoded value.
+
+  ## Example
+
+      hardcoded :string, "name", "John"
+
+  For `type` check out the possibilities in `column/3`.
+  Make sure the `value` is of `type`.
+  """
+
+  defmacro hardcoded(type, _header, _value)
+           when not (type in @types) do
+    raise(ArgumentError, "type should be one of #{inspect(@types)} on line #{__CALLER__.line}")
+  end
+
+  defmacro hardcoded(_type, header, _value) when not is_binary(header) do
+    raise(ArgumentError, "header should be a string on line #{__CALLER__.line}")
+  end
+
+  defmacro hardcoded(type, header, value) do
+    opts = [hardcoded: value, header: header]
+
+    quote bind_quoted: [type: type, opts: opts] do
+      @columns {"hardcoded#{length(@columns)}" |> String.to_atom(), type, opts}
+    end
+  end
+
+  @doc """
   Specify the character to use as column delimiter, default: ","
 
   ## Example
 
-     delimiter ";"
+      delimiter ";"
   """
-  defmacro delimiter(char) do
+  defmacro delimiter(char) when is_binary(char) do
     quote bind_quoted: [char: char] do
       @delimiter char
     end
+  end
+
+  defmacro delimiter(_) do
+    raise(ArgumentError, "delimiter expects a binary on line #{__CALLER__.line}.")
   end
 
   @doc """
@@ -88,12 +132,16 @@ defmodule CsvGenerator do
 
   ## Example
 
-    line_ending "\r\n"
+      line_ending "\\r\\n"
   """
-  defmacro line_ending(char) do
+  defmacro line_ending(char) when is_binary(char) do
     quote bind_quoted: [char: char] do
       @line_ending char
     end
+  end
+
+  defmacro line_ending(_) do
+    raise(ArgumentError, "line_ending expects a binary on line #{__CALLER__.line}.")
   end
 
   @doc """
@@ -101,27 +149,75 @@ defmodule CsvGenerator do
 
   ## Example
 
-    decimal_point ","
+      decimal_point ","
   """
-  defmacro decimal_point(char) do
+  defmacro decimal_point(char) when is_binary(char) do
     quote bind_quoted: [char: char] do
       @decimal_point char
     end
   end
 
+  defmacro decimal_point(_) do
+    raise(ArgumentError, "decimal_point expects a binary on line #{__CALLER__.line}.")
+  end
+
+  @doc """
+  Add the header to the generated CSV, default: true.
+
+  ## Example
+
+      header false
+
+  """
+  defmacro header(flag) when is_boolean(flag) do
+    quote bind_quoted: [flag: !flag] do
+      @no_header flag
+    end
+  end
+
+  defmacro header(_flag) do
+    raise(ArgumentError, "header takes a boolean on line #{__CALLER__.line}.")
+  end
+
   @doc false
-  def compile(columns, delimiter, line_ending, decimal_point) do
+  def compile(columns, delimiter, line_ending, decimal_point, no_header) do
     headers = gen_header(columns, delimiter)
+
     columns_ast = gen_columns(columns, decimal_point)
 
     columns_fn =
       Enum.map(columns, fn {name, _type, opts} ->
-        value = Keyword.get(opts, :source, name)
+        case Keyword.get(opts, :hardcoded) do
+          nil ->
+            value = Keyword.get(opts, :source, name)
 
-        quote do
-          render(unquote(name), Map.get(row, unquote(value)))
+            quote do
+              render(unquote(name), Map.get(row, unquote(value)))
+            end
+
+          value ->
+            quote bind_quoted: [name: name, value: Macro.escape(value)] do
+              render(name, value)
+            end
         end
       end)
+
+    row_fn =
+      quote do
+        Enum.map(list, fn row ->
+          unquote(columns_fn)
+          |> Enum.join(unquote(delimiter))
+        end)
+      end
+
+    list_fn =
+      if no_header do
+        row_fn
+      else
+        quote do
+          [unquote(headers) | unquote(row_fn)]
+        end
+      end
 
     quote do
       unquote(columns_ast)
@@ -135,22 +231,14 @@ defmodule CsvGenerator do
          "..."
       """
       def render(list) when is_list(list) do
-        [
-          unquote(headers)
-          | Enum.map(list, fn row ->
-              unquote(columns_fn)
-              |> Enum.join(unquote(delimiter))
-            end)
-        ]
-        |> Enum.join(unquote(line_ending))
+        unquote(list_fn) |> Enum.join(unquote(line_ending))
       end
     end
   end
 
   defp gen_header(columns, delimiter) do
     Enum.map(columns, fn {name, _type, opts} ->
-      Keyword.get(opts, :header, name)
-      |> quote_string()
+      ~s("#{Keyword.get(opts, :header, name)}")
     end)
     |> Enum.join(delimiter)
   end
@@ -180,7 +268,7 @@ defmodule CsvGenerator do
             unquote(func)
 
             def unquote(fname)(unquote(name), value) do
-              quote_string(value)
+              ~s("#{value}")
             end
           end
 
@@ -310,10 +398,5 @@ defmodule CsvGenerator do
           end
       end
     end
-  end
-
-  @doc false
-  def quote_string(s) do
-    ["\"", s, "\""] |> Enum.join()
   end
 end
