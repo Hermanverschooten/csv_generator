@@ -4,10 +4,12 @@ defmodule CsvGeneratorTest do
   defmodule MyCSV do
     use CsvGenerator
 
+    header true
+
     column :name, :string, header: "player"
     column :points, :integer
     column :calculated, :float, digits: 1, source: :points, with: &calc/1
-    column :today, :date, with: fn _ -> ~D[2020-03-29] end
+    hardcoded :date, "today", ~D[2020-03-29]
     column :hour, :time
 
     def calc(pt) do
