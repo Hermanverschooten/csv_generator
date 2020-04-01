@@ -41,3 +41,14 @@ This can be changed by using `delimiter` and `line_ending`.
        %{ name: "Jose Valim", joined: ~D[2020-03-29], points: 10} ])
     "\"name\";\"joined\";\"points earned\"\n\"Jose Valim\";29-03-2020;10"
 
+# Formatting
+
+A formatter is included, to be able to have `mix format` use it, you have to add it to your own `.formatter.exs` in `import_deps`.
+
+## Example
+
+    [
+      import_deps: [:ecto, :phoenix, :csv_generator],
+      inputs: ["*.{ex,exs}", "priv/*/seeds.exs", "{config,lib,test}/**/*.{ex,exs}"],
+      subdirectories: ["priv/*/migrations"]
+    ]
