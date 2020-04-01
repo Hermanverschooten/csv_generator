@@ -3,6 +3,7 @@
 ## v0.1.2
 
 * add `hardcoded/3`
+* add `header/1`
 * Update README with formatter information
 * Add exceptions
 
