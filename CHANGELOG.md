@@ -1,5 +1,10 @@
 # Changelog
 
+## v0.1.3
+
+* Default nil values to empty columns
+* Allow integer values in float columns
+
 ## v0.1.2
 
 * add `hardcoded/3`

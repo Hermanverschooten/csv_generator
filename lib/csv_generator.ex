@@ -61,6 +61,12 @@ defmodule CsvGenerator do
                   column :value, :integer, with: &calc/1 or
                   column :value, :integer, with: fn(x) -> x * 2 end
     * `:source` - Use another field as the source for this column, this allows you to use the same column multiple times.
+
+  ## nil values
+
+  Columns with a `nil` value will be empty in the output.
+  If you do not want this, if you want some _default_ value, then use the `with:` option to supply a function that transforms the `nil` into something, formatting and rounding options will be applied.
+      column :c3po, :integer, with: fn i -> if i == nil, do: 0, else: i end
   """
   defmacro column(_name, type, opts \\ [])
 
@@ -278,7 +284,7 @@ defmodule CsvGenerator do
             unquote(func)
 
             @doc false
-            def unquote(fname)(unquote(name), nil), do: 0
+            def unquote(fname)(unquote(name), nil), do: ""
 
             def unquote(fname)(unquote(name), value) when is_integer(value) do
               value
@@ -332,10 +338,13 @@ defmodule CsvGenerator do
               v =
                 cond do
                   is_nil(value) ->
-                    0.0
+                    ""
 
                   is_float(value) ->
                     value
+
+                  is_integer(value) ->
+                    value / 1
 
                   is_binary(value) ->
                     case Float.parse(value) do
