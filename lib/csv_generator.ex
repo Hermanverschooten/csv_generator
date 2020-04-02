@@ -343,6 +343,9 @@ defmodule CsvGenerator do
                   is_float(value) ->
                     value
 
+                  is_integer(value) ->
+                    value / 1
+
                   is_binary(value) ->
                     case Float.parse(value) do
                       :error ->
