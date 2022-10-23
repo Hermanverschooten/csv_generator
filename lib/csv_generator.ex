@@ -71,7 +71,7 @@ defmodule CsvGenerator do
   defmacro column(_name, type, opts \\ [])
 
   defmacro column(_name, type, _opts)
-           when not (type in @types) do
+           when type not in @types do
     raise(ArgumentError, "type should be one of #{inspect(@types)} on line #{__CALLER__.line}")
   end
 
@@ -100,7 +100,7 @@ defmodule CsvGenerator do
   """
 
   defmacro hardcoded(type, _header, _value)
-           when not (type in @types) do
+           when type not in @types do
     raise(ArgumentError, "type should be one of #{inspect(@types)} on line #{__CALLER__.line}")
   end
 
@@ -274,7 +274,7 @@ defmodule CsvGenerator do
             unquote(func)
 
             def unquote(fname)(unquote(name), value) do
-              ~s("#{value}")
+              ~s("#{String.replace(value, "\"", "\"\"")}")
             end
           end
 
@@ -318,15 +318,14 @@ defmodule CsvGenerator do
                 divisor = 5 / :math.pow(10, digits + 2)
 
                 quote do
-                  Float.round(v + unquote(divisor), unquote(digits))
+                  :erlang.float_to_binary(v + unquote(divisor), decimals: unquote(digits))
                 end
 
               {digits, char} ->
                 divisor = 5 / :math.pow(10, digits + 2)
 
                 quote do
-                  Float.round(v + unquote(divisor), unquote(digits))
-                  |> to_string
+                  :erlang.float_to_binary(v + unquote(divisor), decimals: unquote(digits))
                   |> String.replace(".", unquote(char))
                 end
             end

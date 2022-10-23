@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.4
+
+* Double the double quotes inside a string.
+
 ## v0.1.3
 
 * Default nil values to empty columns
