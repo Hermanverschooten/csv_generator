@@ -274,7 +274,7 @@ defmodule CsvGenerator do
             unquote(func)
 
             def unquote(fname)(unquote(name), value) do
-              ~s("#{String.replace(value, "\"", "\"\"")}")
+              ~s("#{String.replace(to_string(value), "\"", "\"\"")}")
             end
           end
 

@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.1.5
+
+* :string will not always convert to string
+
 ## v0.1.4
 
 * Double the double quotes inside a string.
