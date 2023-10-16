@@ -1,7 +1,7 @@
 defmodule CsvGenerator.MixProject do
   use Mix.Project
 
-  @version "0.1.5"
+  @version "0.1.6"
 
   def project do
     [
@@ -27,7 +27,7 @@ defmodule CsvGenerator.MixProject do
   defp deps do
     [
       {:calendar, "~> 1.0"},
-      {:ex_doc, "~> 0.20", only: :docs, runtime: false}
+      {:ex_doc, "~> 0.20", only: :dev, runtime: false}
     ]
   end
 
@@ -55,7 +55,7 @@ defmodule CsvGenerator.MixProject do
     ]
   end
 
-  defp paths(:test), do: ["lib", "docs", "test"]
+  defp paths(:test), do: ["lib", "test"]
   defp paths(:dev), do: ["lib", "docs"]
   defp paths(:docs), do: ["lib", "docs"]
   defp paths(_), do: ["lib"]

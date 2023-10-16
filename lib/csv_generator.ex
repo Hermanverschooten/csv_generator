@@ -20,10 +20,10 @@ defmodule CsvGenerator do
   defmacro __before_compile__(env) do
     compile(
       Module.get_attribute(env.module, :columns) |> Enum.reverse(),
-      Module.get_attribute(env.module, :delimiter, ","),
-      Module.get_attribute(env.module, :line_ending, "\n"),
-      Module.get_attribute(env.module, :decimal_point, "."),
-      Module.get_attribute(env.module, :no_header, false)
+      Module.get_attribute(env.module, :delimiter, ",") || ",",
+      Module.get_attribute(env.module, :line_ending, "\n") || "\n",
+      Module.get_attribute(env.module, :decimal_point, ".") || ".",
+      Module.get_attribute(env.module, :no_header, false) || false
     )
   end
 
