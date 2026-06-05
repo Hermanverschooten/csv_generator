@@ -46,14 +46,14 @@ defmodule CsvGenerator do
   `:datetime`  | `DateTime`              | `"%Y-%m-%d %H:%M:%S"`
 
   For `:date`, `:time`, and `:datetime`, any of the Date(Time) types that
-  are compatible with `Calendar.Strftime.strftime/2` are allowed.
+  are compatible with `Calendar.strftime/2` are allowed.
   `:time` also allows an `Integer` value that represents the time within a day.
 
   ## Options
 
     * `:header` - Use this instead of the name for column header.
 
-    * `:format` - Supply a different format string, see https://hexdocs.pm/calendar/readme.html.
+    * `:format` - Supply a different format string, see `Calendar.strftime/2`.
 
     * `:digits` - Supply the number of digits for a `Float`.
 
@@ -369,7 +369,7 @@ defmodule CsvGenerator do
             def unquote(fname)(unquote(name), nil), do: ""
 
             def unquote(fname)(unquote(name), value) do
-              Calendar.Strftime.strftime!(value, unquote(Keyword.get(opts, :format, "%Y-%m-%d")))
+              Calendar.strftime(value, unquote(Keyword.get(opts, :format, "%Y-%m-%d")))
             end
           end
 
@@ -384,7 +384,7 @@ defmodule CsvGenerator do
             end
 
             def unquote(fname)(unquote(name), value) do
-              Calendar.Strftime.strftime!(
+              Calendar.strftime(
                 value,
                 unquote(Keyword.get(opts, :format, "%H:%M"))
               )
@@ -398,7 +398,7 @@ defmodule CsvGenerator do
             def unquote(fname)(unquote(name), nil), do: ""
 
             def unquote(fname)(unquote(name), value) do
-              Calendar.Strftime.strftime!(
+              Calendar.strftime(
                 value,
                 unquote(Keyword.get(opts, :format, "%Y-%m-%d %H:%M:%S"))
               )

@@ -1,5 +1,19 @@
 # Changelog
 
+## v0.2.0
+
+* Drop the `calendar` dependency in favour of the standard library `Calendar.strftime/2`.
+* Requires Elixir 1.11 or later.
+
+## v0.1.7
+
+* Update dependencies.
+
+## v0.1.6
+
+* Ensure the `delimiter`, `line ending`, `decimal point`, and `header` options
+  fall back to their defaults when set to `nil`.
+
 ## v0.1.5
 
 * :string will not always convert to string

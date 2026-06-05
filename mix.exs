@@ -1,13 +1,13 @@
 defmodule CsvGenerator.MixProject do
   use Mix.Project
 
-  @version "0.1.7"
+  @version "0.2.0"
 
   def project do
     [
       app: :csv_generator,
       version: @version,
-      elixir: "~> 1.9",
+      elixir: "~> 1.11",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
       description: description(),
@@ -26,7 +26,6 @@ defmodule CsvGenerator.MixProject do
 
   defp deps do
     [
-      {:calendar, "~> 1.0"},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false}
     ]
   end
