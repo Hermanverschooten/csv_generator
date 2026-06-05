@@ -1,7 +1,7 @@
 defmodule CsvGenerator.MixProject do
   use Mix.Project
 
-  @version "0.2.0"
+  @version "0.2.1"
 
   def project do
     [
@@ -49,7 +49,7 @@ defmodule CsvGenerator.MixProject do
     [
       main: "CsvGenerator",
       source_ref: "v#{@version}",
-      canonical: "http://hexdocs.pm/csv_generator",
+      canonical: "https://csv-generator.hexdocs.pm",
       source_url: "https://github.com/Hermanverschooten/csv_generator"
     ]
   end

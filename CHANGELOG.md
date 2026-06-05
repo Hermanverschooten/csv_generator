@@ -1,5 +1,9 @@
 # Changelog
 
+## v0.2.1
+
+* Update the docs canonical URL to the new per-package HexDocs subdomain style.
+
 ## v0.2.0
 
 * Drop the `calendar` dependency in favour of the standard library `Calendar.strftime/2`.
