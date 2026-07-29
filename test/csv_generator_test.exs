@@ -74,6 +74,106 @@ defmodule CsvGeneratorTest do
     end
   end
 
+  defmodule DecimalCSV do
+    use CsvGenerator
+
+    header false
+
+    column :plain, :decimal
+    column :rounded, :decimal, digits: 2
+  end
+
+  defmodule DecimalCommaCSV do
+    use CsvGenerator
+
+    header false
+    delimiter ";"
+    decimal_point ","
+
+    column :plain, :decimal
+    column :rounded, :decimal, digits: 2
+  end
+
+  defmodule FloatCSV do
+    use CsvGenerator
+
+    header false
+
+    column :f, :float
+  end
+
+  describe "decimal columns" do
+    test "render Decimal values, rounding half-up to the requested digits" do
+      row = %{plain: Decimal.new("1.5"), rounded: Decimal.new("1.255")}
+      assert DecimalCSV.render([row]) == "1.5,1.26"
+    end
+
+    test "keep trailing zeros up to the requested digits" do
+      assert DecimalCSV.render([%{plain: Decimal.new("2"), rounded: Decimal.new("0.1")}]) ==
+               "2,0.10"
+    end
+
+    test "never emit scientific notation" do
+      assert DecimalCSV.render([%{plain: Decimal.new("1E3"), rounded: Decimal.new("1E3")}]) ==
+               "1000,1000.00"
+    end
+
+    test "honour the configured decimal point" do
+      assert DecimalCommaCSV.render([%{plain: Decimal.new("1.5"), rounded: Decimal.new("1.255")}]) ==
+               "1,5;1,26"
+    end
+
+    test "accept integers, floats and strings" do
+      assert DecimalCSV.render([%{plain: 10, rounded: 10}]) == "10,10.00"
+      assert DecimalCSV.render([%{plain: 1.5, rounded: 1.5}]) == "1.5,1.50"
+      assert DecimalCSV.render([%{plain: "1.5", rounded: "1.255"}]) == "1.5,1.26"
+    end
+
+    test "render nil as an empty column" do
+      assert DecimalCSV.render([%{}]) == ","
+    end
+
+    test "raise on unparseable strings and unsupported values" do
+      assert_raise RuntimeError, ~r/Cannot parse decimal value/, fn ->
+        DecimalCSV.render([%{plain: "abc"}])
+      end
+
+      assert_raise RuntimeError, ~r/Cannot parse decimal value/, fn ->
+        DecimalCSV.render([%{plain: "1.5abc"}])
+      end
+
+      assert_raise RuntimeError, ~r/Invalid decimal value/, fn ->
+        DecimalCSV.render([%{plain: :nope}])
+      end
+    end
+
+    test "reject unbounded exponents rather than expanding them (CVE-2026-32686)" do
+      assert_raise RuntimeError, ~r/Cannot parse decimal value/, fn ->
+        DecimalCSV.render([%{plain: "1e1000000000"}])
+      end
+    end
+
+    test "a Decimal in a :float column points at the :decimal type" do
+      assert_raise RuntimeError, ~r/use the :decimal column type/, fn ->
+        FloatCSV.render([%{f: Decimal.new("1.5")}])
+      end
+    end
+  end
+
+  describe "float column errors" do
+    test "report unparseable strings, quoted once" do
+      assert_raise RuntimeError, ~s(Cannot parse float value "abc"), fn ->
+        FloatCSV.render([%{f: "abc"}])
+      end
+    end
+
+    test "report unsupported values" do
+      assert_raise RuntimeError, "Invalid float value :nope", fn ->
+        FloatCSV.render([%{f: :nope}])
+      end
+    end
+  end
+
   defmodule ReadmeExample1 do
     use CsvGenerator
 

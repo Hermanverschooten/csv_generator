@@ -44,11 +44,29 @@ these exact names:
 | `:string` | anything (`to_string/1` is applied) | n/a |
 | `:integer` | `Integer` or `String` | n/a |
 | `:float` | `Float`, `Integer`, or a parseable `String` | n/a |
+| `:decimal` | `Decimal`, `Integer`, `Float`, or a parseable `String` | n/a |
 | `:date` | any `Calendar.strftime/2`-compatible value | `"%Y-%m-%d"` |
 | `:time` | `DateTime`, or `Integer` (unix seconds, rendered UTC) | `"%H:%M"` |
 | `:datetime` | any `Calendar.strftime/2`-compatible value | `"%Y-%m-%d %H:%M:%S"` |
 
 Any other type raises `ArgumentError` at compile time.
+
+## Decimal support
+
+`:decimal` needs the optional [decimal](https://hex.pm/packages/decimal)
+package — add `{:decimal, "~> 3.1"}` to your own deps. Declaring a `:decimal`
+column without it is a compile-time error naming the column, so you cannot
+ship a broken build by accident. Every other type works with `decimal` absent.
+
+Prefer `:decimal` over `:float` for money and for `Decimal` fields read from
+Ecto. It rounds exactly half-up, keeps trailing zeros, and never emits
+scientific notation — `:float` can only approximate the first and gets the
+third wrong for large or tiny magnitudes. Passing a `Decimal` to a `:float`
+column raises and tells you to switch.
+
+Version 3.1 or later is required deliberately: `Decimal.parse/1` in 2.x is
+subject to CVE-2026-32686 (unbounded exponent DoS), and this library calls it
+on string values you supply.
 
 ## File-level settings
 

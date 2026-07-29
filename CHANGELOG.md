@@ -1,7 +1,16 @@
 # Changelog
 
-## Unreleased
+## v0.3.0
 
+* Add a `:decimal` column type, backed by the optional `:decimal` package
+  (`{:decimal, "~> 3.1"}`). It rounds exactly half-up, keeps trailing zeros, and
+  never emits scientific notation, unlike `:float`. Declaring a `:decimal` column
+  without the package is a compile-time error; every other type is unaffected.
+  3.1 is required because `Decimal.parse/1` in 2.x is subject to CVE-2026-32686.
+* Passing a `Decimal` to a `:float` column now raises an error pointing at the
+  `:decimal` type, instead of the generic "Invalid float value".
+* Tidy the `:float` error messages: fix a "Cannort parse float value" typo, and
+  stop double-quoting values that `inspect/1` already quotes.
 * Fix an `ArithmeticError` when a `nil` value reached a `:float` column that had
   `digits:` set. `nil` now renders as an empty column for every type, as documented.
 * Add `usage-rules.md`, describing the DSL for consuming projects.

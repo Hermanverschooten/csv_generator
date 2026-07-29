@@ -1,7 +1,7 @@
 defmodule CsvGenerator.MixProject do
   use Mix.Project
 
-  @version "0.2.1"
+  @version "0.3.0"
 
   def project do
     [
@@ -26,6 +26,7 @@ defmodule CsvGenerator.MixProject do
 
   defp deps do
     [
+      {:decimal, "~> 3.1", optional: true},
       {:ex_doc, "~> 0.20", only: :dev, runtime: false}
     ]
   end

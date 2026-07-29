@@ -1,7 +1,7 @@
 defmodule CsvGenerator do
   @moduledoc File.read!("README.md")
 
-  @types [:string, :integer, :float, :date, :datetime, :time]
+  @types [:string, :integer, :float, :decimal, :date, :datetime, :time]
 
   defmacro __using__(_options) do
     quote do
@@ -41,9 +41,16 @@ defmodule CsvGenerator do
   `:string`    | `String`                | n/a
   `:integer`   | `Integer`               | n/a
   `:float`     | `Float`                 | n/a
+  `:decimal`   | `Decimal`               | n/a
   `:date`      | `Date`                  | `"%Y-%m-%d"`
   `:time`      | `DateTime` or `Integer` | `"%H:%M"`
   `:datetime`  | `DateTime`              | `"%Y-%m-%d %H:%M:%S"`
+
+  The `:decimal` type requires the optional
+  [decimal](https://hex.pm/packages/decimal) package; add
+  `{:decimal, "~> 3.1"}` to your dependencies to use it. Unlike `:float`, it
+  rounds exactly (half-up) and never emits scientific notation, which makes it
+  the right choice for money and for `Decimal` fields coming out of Ecto.
 
   For `:date`, `:time`, and `:datetime`, any of the Date(Time) types that
   are compatible with `Calendar.strftime/2` are allowed.
@@ -347,14 +354,84 @@ defmodule CsvGenerator do
                   is_binary(value) ->
                     case Float.parse(value) do
                       :error ->
-                        raise "Cannort parse float value \"#{inspect(value)}\""
+                        raise "Cannot parse float value #{inspect(value)}"
 
                       {f, _} ->
                         f
                     end
 
+                  is_struct(value, Decimal) ->
+                    raise "Invalid float value #{inspect(value)}, " <>
+                            "use the :decimal column type for Decimal values"
+
                   true ->
-                    raise "Invalid float value \"#{inspect(value)}\""
+                    raise "Invalid float value #{inspect(value)}"
+                end
+
+              unquote(convert)
+            end
+          end
+
+        :decimal ->
+          unless Code.ensure_loaded?(Decimal) do
+            raise ArgumentError,
+                  "column #{inspect(name)} uses the :decimal type, which requires the " <>
+                    ~s(:decimal package. Add {:decimal, "~> 3.1"} to your dependencies.)
+          end
+
+          convert =
+            case {Keyword.get(opts, :digits), decimal_point} do
+              {nil, "."} ->
+                quote do
+                  Decimal.to_string(d, :normal)
+                end
+
+              {nil, char} ->
+                quote do
+                  Decimal.to_string(d, :normal) |> String.replace(".", unquote(char))
+                end
+
+              {digits, "."} ->
+                quote do
+                  Decimal.round(d, unquote(digits)) |> Decimal.to_string(:normal)
+                end
+
+              {digits, char} ->
+                quote do
+                  Decimal.round(d, unquote(digits))
+                  |> Decimal.to_string(:normal)
+                  |> String.replace(".", unquote(char))
+                end
+            end
+
+          quote do
+            unquote(func)
+
+            def unquote(fname)(unquote(name), nil), do: ""
+
+            def unquote(fname)(unquote(name), value) do
+              d =
+                cond do
+                  is_struct(value, Decimal) ->
+                    value
+
+                  is_integer(value) ->
+                    Decimal.new(value)
+
+                  is_float(value) ->
+                    Decimal.from_float(value)
+
+                  is_binary(value) ->
+                    case Decimal.parse(value) do
+                      {decimal, ""} ->
+                        decimal
+
+                      _ ->
+                        raise "Cannot parse decimal value #{inspect(value)}"
+                    end
+
+                  true ->
+                    raise "Invalid decimal value #{inspect(value)}"
                 end
 
               unquote(convert)
