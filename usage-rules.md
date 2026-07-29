@@ -68,6 +68,10 @@ Version 3.1 or later is required deliberately: `Decimal.parse/1` in 2.x is
 subject to CVE-2026-32686 (unbounded exponent DoS), and this library calls it
 on string values you supply.
 
+CsvGenerator itself supports Elixir `~> 1.11`, but `decimal` 3.1 requires
+Elixir 1.12 or later. The `:decimal` type therefore needs 1.12+, even though
+every other part of the library still runs on 1.11.
+
 ## File-level settings
 
 ```elixir

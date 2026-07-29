@@ -52,6 +52,10 @@ defmodule CsvGenerator do
   rounds exactly (half-up) and never emits scientific notation, which makes it
   the right choice for money and for `Decimal` fields coming out of Ecto.
 
+  CsvGenerator itself supports Elixir `~> 1.11`, but `decimal` 3.1 requires
+  Elixir 1.12 or later, so the `:decimal` type needs 1.12+ even though every
+  other part of the library still runs on 1.11.
+
   For `:date`, `:time`, and `:datetime`, any of the Date(Time) types that
   are compatible with `Calendar.strftime/2` are allowed.
   `:time` also allows an `Integer` value that represents the time within a day.
