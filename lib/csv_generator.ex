@@ -333,12 +333,11 @@ defmodule CsvGenerator do
           quote do
             unquote(func)
 
+            def unquote(fname)(unquote(name), nil), do: ""
+
             def unquote(fname)(unquote(name), value) do
               v =
                 cond do
-                  is_nil(value) ->
-                    ""
-
                   is_float(value) ->
                     value
 

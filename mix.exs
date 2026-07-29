@@ -41,13 +41,14 @@ defmodule CsvGenerator.MixProject do
       maintainers: ["Herman verschooten"],
       licenses: ["MIT"],
       links: %{"GitHub" => "https://github.com/Hermanverschooten/csv_generator"},
-      files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md lib)
+      files: ~w(.formatter.exs mix.exs README.md CHANGELOG.md usage-rules.md lib)
     ]
   end
 
   defp docs do
     [
       main: "CsvGenerator",
+      extras: ["usage-rules.md", "CHANGELOG.md"],
       source_ref: "v#{@version}",
       canonical: "https://csv-generator.hexdocs.pm",
       source_url: "https://github.com/Hermanverschooten/csv_generator"

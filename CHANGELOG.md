@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased
+
+* Fix an `ArithmeticError` when a `nil` value reached a `:float` column that had
+  `digits:` set. `nil` now renders as an empty column for every type, as documented.
+* Add `usage-rules.md`, describing the DSL for consuming projects.
+* Fix the `README` examples: the column header option is `header:`, not `label:`.
+
 ## v0.2.1
 
 * Update the docs canonical URL to the new per-package HexDocs subdomain style.

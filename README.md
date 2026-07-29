@@ -8,7 +8,7 @@ It allows you to define the colums and their respective types.
 
       column :name, :string
       column :joined, :date, format: "%d-%m-%Y"
-      column :points, :integer, label: "points earned"
+      column :points, :integer, header: "points earned"
       hardcoded :string, "Game", "domino"
     end
 
@@ -17,7 +17,7 @@ the list of lines to render.
 
 ## Example
 
-    iex> MyCSV.render([ 
+    iex> MyCSV.render([
        %{ name: "Chris McCord", joined: ~D[2020-01-01], points: 110},
        %{ name: "Jose Valim", joined: ~D[2020-03-29], points: 10} ])
     "\"name\",\"joined\",\"points earned\",\"Game\"\n\"Chris McCord\",01-01-2020,110,\"domino\"\n\"Jose Valim\",29-03-2020,10,\"domino\""
@@ -34,13 +34,13 @@ This can be changed by using `delimiter` and `line_ending`.
       line_ending "\r\n"
 
       column :name, :string
-      column :birthday, :date, format: "%d-%m-%Y"
-      column :points, :integer
+      column :joined, :date, format: "%d-%m-%Y"
+      column :points, :integer, header: "points earned"
     end
 
-    iex> MyCSV.render([ 
+    iex> MyCSV.render([
        %{ name: "Jose Valim", joined: ~D[2020-03-29], points: 10} ])
-    "\"name\";\"joined\";\"points earned\"\n\"Jose Valim\";29-03-2020;10"
+    "\"name\";\"joined\";\"points earned\"\r\n\"Jose Valim\";29-03-2020;10"
 
 # Formatting
 
